@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1573309642955.000,
+    "dirty" : true,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "414813312",
+    "id" : "EA704CE",
+    "lastKnownWriteTime" : 1573309529,
+    "last_content_update" : 1573310976885,
+    "path" : "~/Downloads/lab3.R",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "130,0",
+        "scrollLine" : "124"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

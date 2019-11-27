@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1573309614737.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3652673274",
+    "id" : "E3B195",
+    "lastKnownWriteTime" : 1573407040,
+    "last_content_update" : 1573407040225,
+    "path" : "~/Desktop/dshmk3/hmk3/hmk3.R",
+    "project_path" : "hmk3.R",
+    "properties" : {
+        "cursorPosition" : "59,12",
+        "scrollLine" : "54",
+        "tempName" : "Untitled1"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

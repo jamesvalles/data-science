@@ -1,0 +1,256 @@
+# install.packages("cluster")
+# install.packages("NbClust")
+# install.packages("factoextra")
+# install.packages("fpc")
+# install.packages("dbscan")
+
+library(cluster) 
+library(NbClust)
+library(factoextra)
+library(fpc)
+library(dplyr)
+library(dbscan)
+
+set.seed(123)
+
+#Application of clustering analysis
+
+# Load Data
+dogs <- read.csv("/Users/jamesvalles/Downloads/dogs.csv", header=T, sep=',')
+
+# Assign the breed name as the name of each row of data for plotting later.
+row.names(dogs) <- dogs$Breed
+
+# Drop the Breed column
+dogs <- select(dogs, -c(Breed))
+
+# Omit missing record
+dogs <- na.omit(dogs)
+
+#analyze distribution of variables
+summary(dogs)
+
+# The dogs dataframe is already on the same variable scale, but if it weren't, 
+# you'd use this command to standardize it.
+# scaled_data_frame = data.frame(scale(data_that_needs_scaling))
+
+# Before clustering, we can visualize the distance (similarity) between each breed
+distance <- get_dist(dogs, method="euclidian" )
+fviz_dist(dist(dogs), gradient = list(low = "#00AFBB", mid = "white", high = "#FC4E07"))
+
+############################################
+# K-means clustering
+############################################
+
+#Computes clustering evaluation metrics to select optimal number k.
+# Try a minimum number of clusters of min.nc through a max of max.nc
+
+nc <- NbClust(dogs, min.nc=3, max.nc=10, method="kmeans")
+
+# We can also visualize the optimal number of clusters manually using the "elbow" method
+fviz_nbclust(dogs, FUNcluster=kmeans, method = "wss")
+
+#apply k-means for k=4
+km_4 <- kmeans(dogs, 4, nstart=25)
+
+# calculate summary stats for the clustering
+km4_stats <- cluster.stats(dist(dogs),  km_4$cluster, silhouette = TRUE)
+
+     
+# View attributes of your model
+
+###### By-cluster metrics
+
+# size of clusters
+km4_stats$cluster.size
+
+# centroids
+km_4$centers
+
+# Each cluster's silhouette width
+km4_stats$clus.avg.silwidths
+
+# Within-cluster average distance by cluster
+km4_stats$average.distance
+
+# Between-cluster average distance by cluster
+km4_stats$separation
+
+####### Overall clustering metrics
+
+# Between-cluster average distance
+km4_stats$average.between
+
+# Within-cluster average distance
+km4_stats$average.within
+
+# within-cluster sum of squares
+km4_stats$within.cluster.ss
+
+# between-cluster sum of squares
+km_4$betweenss
+
+#silhouette metric
+km4_stats$avg.silwidth
+
+# We didn't need to scale the dogs data, but if we had, you could get the cluster centers in their original scale with the following line.
+# centers <-aggregate(scaled_data_frame, by=list(cluster=km_4$cluster), mean)
+# centers
+
+# Plot boxplots for each attribute by cluster number
+# This will loop through all of the variables and generate a plot for each.
+for (i in 1:(ncol(dogs))){
+  boxplot(dogs[[i]] ~ km_4$cluster, xlab="cluster", main=names(dogs)[i])
+}
+par(mfrow=c(1,1)) # Reset to default plot settings
+
+# View a table of which dogs were assigned to each cluster
+table(rownames(dogs), Cluster=km_4$cluster)
+
+# Create clustering plot on first two principal components
+fviz_cluster(km_4, data = dogs, repel = TRUE, show.clust.cent = FALSE)
+
+
+
+#######################################
+# K-medoids clustering (PAM)
+#######################################
+
+# Computes clustering evaluation metrics to select optimal number k, this time for k-medoids
+nc <- NbClust(dogs, min.nc=3, max.nc=6, method="median")
+
+# We can also visualize the optimal number of clusters manually using the "elbow" method
+fviz_nbclust(dogs, FUNcluster=pam, method = "wss")
+
+# Apply kmedoid method with K=3 (which we got from the previous step)
+# Notice that you have the option specifying which distance metric to use.
+pam_3 <- pam(dogs, 3, FALSE, "euclidean")
+
+
+# calculate summary stats for the clustering
+pam3_stats <- cluster.stats(dist(dogs),  pam_3$cluster, silhouette = TRUE)
+
+# size of clusters
+pam3_stats$cluster.size
+
+# centroids
+pam_3$medoids
+
+# Each cluster's silhouette width
+pam3_stats$clus.avg.silwidths
+
+# Within-cluster average distance by cluster
+pam3_stats$average.distance
+
+# Between-cluster average distance by cluster
+pam3_stats$separation
+
+####### Overall clustering metrics
+
+# Between-cluster average distance
+pam3_stats$average.between
+
+# Within-cluster average distance
+pam3_stats$average.within
+
+# within-cluster sum of squares
+pam3_stats$within.cluster.ss
+
+#silhouette metric
+pam3_stats$avg.silwidth
+
+
+# Plot boxplots for each attribute by cluster number
+for (i in 1:(ncol(dogs))){
+  boxplot(dogs[[i]]~pam_3$cluster, xlab="cluster", main=names(dogs)[i])
+}
+par(mfrow=c(1,1)) # Reset to default plot settings
+
+# View a table of which dogs were assigned to each cluster
+table(rownames(dogs), Cluster=pam_3$cluster)
+
+# Use PCA to plot results of K-medoids
+fviz_cluster(pam_3, data = dogs, repel = TRUE, show.clust.cent = FALSE)
+
+
+#######################################
+# Hierarchical clustering
+#######################################
+# Computes clustering evaluation metrics to select optimal number k, this time for hierarchical clustering
+
+nc = NbClust(dogs, min.nc=3, max.nc=6, method="complete")
+
+# Build the clustering model
+hc <- hclust(dist(dogs), method="complete")
+
+# Visualize the dendrogram
+plot(hc, hang = -1)
+
+# Add cuts for K=5 groups in plot 
+rect.hclust(hc, k=5)
+
+#create K=5 groups of observations 
+hc$cluster <- cutree(hc, k=5)
+
+# calculate summary stats for the clustering
+hc_stats <- cluster.stats(dist(dogs),  hc$cluster, silhouette = TRUE)
+
+# size of clusters
+hc_stats$cluster.size
+
+# Each cluster's silhouette width
+hc_stats$clus.avg.silwidths
+
+# Within-cluster average distance by cluster
+hc_stats$average.distance
+
+# Between-cluster average distance by cluster
+hc_stats$separation
+
+####### Overall clustering metrics
+
+# Between-cluster average distance
+hc_stats$average.between
+
+# Within-cluster average distance
+hc_stats$average.within
+
+# within-cluster sum of squares
+hc_stats$within.cluster.ss
+
+#silhouette metric
+hc_stats$avg.silwidth
+
+# And more boxplots!
+for (i in 1:(ncol(dogs))){
+  boxplot(dogs[[i]]~hc$cluster, xlab="cluster", main=names(dogs)[i])
+}
+par(mfrow=c(1,1)) # Reset to default plot settings
+
+# Use PCA to plot results of the clustering
+fviz_cluster(list(data = dogs, cluster = hc$cluster))
+
+#######################################
+# Density-based clustering
+#######################################
+# We'll use a different data set, because the dogs data is to small and diffuse.
+
+data("multishapes")
+shapes <- multishapes[, 1:2]
+
+# Create a distance plot to determine the best eps
+# DBSCAN identifies the number of clusters automagically, so we'll choose an arbitrary k
+dbscan::kNNdistplot(shapes, k =  5) 
+# Add a line at the "knee" of the plot
+abline(h = 0.15, lty = 2)
+
+# Cluster the data using the optimal eps identified above.
+dbsc <- dbscan(shapes, eps = 0.15, minPts = 3)
+
+# Plot the cluster assignments
+fviz_cluster(dbsc, data = shapes, stand = FALSE,
+             ellipse = FALSE, show.clust.cent = FALSE,
+             geom = "point")
+
+# Print number of clusters, cluster sizes, and number of noise points
+print(dbsc)
